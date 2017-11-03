@@ -54,9 +54,9 @@ class Container {
         }
     }
     
-    func addBlock(index: (w: Int, h: Int), block: Block) -> Bool {
-        guard blocks[index.h][index.w] == nil else { return false }
-        blocks[index.h][index.w] = block
+    func addBlock(at: (w: Int, h: Int), block: Block) -> Bool {
+        guard blocks[at.h][at.w] == nil else { return false }
+        blocks[at.h][at.w] = block
         return true
     }
     
@@ -77,10 +77,10 @@ class Container {
         return true
     }
     
-    func removeBlock(index: (w: Int, h: Int)) -> Block? {
-        guard let block = blocks[index.h][index.w] else { return nil }
+    func removeBlock(at: (w: Int, h: Int)) -> Block? {
+        guard let block = blocks[at.h][at.w] else { return nil }
         guard !block.isStatic else { return nil }
-        blocks[index.h][index.w] = nil
+        blocks[at.h][at.w] = nil
         return block
     }
 }

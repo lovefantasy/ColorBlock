@@ -25,8 +25,14 @@ class BlockView: UIView {
         super.init(frame: frame)
         self.backgroundColor = UIColor.clear
         self.layer.backgroundColor = block.color.cgColor
-        print("initializing block with color:", block.description)
+        // print("initializing block with color:", block.description)
         self.layer.zPosition = 100
         self.setCornerRadiusRasterized(radius: frame.size.width / 10)
     }
+    
+    override func isEqual(_ object: Any?) -> Bool {
+        return block == (object as? BlockView)?.block
+    }
 }
+
+

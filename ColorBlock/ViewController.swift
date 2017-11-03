@@ -9,8 +9,10 @@
 import UIKit
 
 class ViewController: UIViewController {
-    let board = Container(width: 1, height: 5, code: [], isBoard: true)
-    let paint = Container(width: 3, height: 3, code: [], isBoard: false)
+    var containerViews: [ContainerView] = []
+    var isPickingBlock: Bool = false
+    var pickedBlockView: UIView?
+    var originBlockView: (w: Int, h: Int, c: ContainerView)? = nil
 
     override func viewWillAppear(_ animated: Bool) {
         self.view.backgroundColor = UIColor.black
@@ -18,24 +20,14 @@ class ViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-        let paintView = ContainerView(container: paint, square: 50, origin: CGPoint(x: 10, y: 10))
-        let boardView = ContainerView(container: board, square: 50, origin: CGPoint(x: 150, y: 150))
+        let board = Container(width: 1, height: 5, code: [], isBoard: true)
+        let paint = Container(width: 3, height: 3, code: [], isBoard: false)
+        let paintView = ContainerView(container: paint, square: 50, origin: CGPoint(x: 20, y: 50))
+        let boardView = ContainerView(container: board, square: 50, origin: CGPoint(x: 200, y: 150))
+        containerViews.append(paintView)
+        containerViews.append(boardView)
         self.view.addSubview(paintView)
         self.view.addSubview(boardView)
-        
-//        for i in 1...5 {
-//            let b = UIButton(frame: CGRect(x: 50, y: CGFloat(55*i), width: w, height: w))
-//            b.backgroundColor = UIColor.clear
-//            b.layer.backgroundColor = UIColor(red: 1, green: 0, blue: 0, alpha: 1).cgColor
-//            b.layer.zPosition = 100
-//            b.setCornerRadiusRasterized(radius: 5)
-//            b.addTarget(self, action: #selector(dragView(sender:event:)), for: UIControlEvents.touchDragInside)
-//            b.addTarget(self, action: #selector(releaseView(sender:event:)), for: UIControlEvents.touchUpInside)
-//            self.view.addSubview(b)
-//        }
-        
-        // Do any additional setup after loading the view, typically from a nib.
     }
 
     override func didReceiveMemoryWarning() {
@@ -43,23 +35,57 @@ class ViewController: UIViewController {
         // Dispose of any resources that can be recreated.
     }
 
-//    @objc private func dragView(sender: AnyObject, event: UIEvent) {
-//        guard let control = sender as? UIControl else { return }
-//        guard let touch = event.allTouches?.first else { return }
-//
-//        var centerRectOfControl = control.center
-//        centerRectOfControl.x += (touch.location(in: control).x - touch.previousLocation(in: control).x)
-//        centerRectOfControl.y += (touch.location(in: control).y - touch.previousLocation(in: control).y)
-//        control.center = centerRectOfControl
-//    }
-//
-//    @objc private func releaseView(sender: AnyObject, event: UIEvent) {
-//        guard let control = sender as? UIControl else { return }
-//
-//        let centerRectOfControl = control.center
-//        if let center = c.hitTest(centerRectOfControl) {
-//            control.center = center
-//        }
-//    }
+    @IBAction func handlePan(recognizer: UIPanGestureRecognizer) {
+        let point = recognizer.location(in: self.view)
+        
+        if recognizer.state == UIGestureRecognizerState.began {
+            for c in containerViews {
+                if let grid = c.hitBlock(point) {
+                    if let block = grid.block {
+                        isPickingBlock = true
+                        pickedBlockView = BlockView(frame: CGRect.init(x: point.x - c.squareSize / 2, y: point.y - c.squareSize / 2, width: c.squareSize, height: c.squareSize), block: block)
+                        originBlockView = (w:grid.w, h:grid.h, c:c)
+                        self.view.addSubview(pickedBlockView!)
+                    }
+                }
+            }
+        } else if recognizer.state == UIGestureRecognizerState.changed {
+            if isPickingBlock {
+                pickedBlockView!.center = point
+            }
+        } else if recognizer.state == UIGestureRecognizerState.ended {
+            isPickingBlock = false
+            if pickedBlockView != nil {
+                pickedBlockView!.removeFromSuperview()
+                pickedBlockView = nil
+                
+                for c in containerViews {
+                    if let grid = c.hitBlock(point) {
+                        print( String.init(format: "Drag complete, origin: %@,%d,%d, end: %@,%d,%d", originBlockView!.c, originBlockView!.w, originBlockView!.h, c, grid.w, grid.h) )
+                        
+                        if c.isEqual(originBlockView?.c) {
+                            // 1. Hit successful in the same containerView
+                            if let block = grid.block {
+                                // 1-1. Hit a grid with a block
+                            } else {
+                                // 1-2. Hit a empty grid
+                            }
+                        } else {
+                            // 2. Hit another containerView
+                            if let block = grid.block {
+                                // 2-1. Hit a grid with a block
+                            } else {
+                                // 2-2. Hit a empty grid
+                                if c.addBlock(at: (w: grid.w, h: grid.h), block: originBlockView!.c.container.blocks[originBlockView!.h][originBlockView!.w]!) {
+                                    originBlockView!.c.removeBlock(at: (w:originBlockView!.w, h:originBlockView!.h))
+                                }
+                            }
+                        }
+                    }
+                }
+                originBlockView = nil
+            } // if pickedBlockView
+        }
+    }
 }
 

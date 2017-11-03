@@ -12,7 +12,8 @@ import Foundation
 class ContainerView: UIView {
     let blockPadding: CGFloat = 5
     let container: Container
-    private var squareSize: CGFloat
+    var blockViews: [BlockView] = []
+    var squareSize: CGFloat
     private var width: Int
     private var height: Int
     var blockSize: CGFloat { return squareSize - blockPadding * 2 }
@@ -77,13 +78,49 @@ class ContainerView: UIView {
                         y: CGFloat(j) * squareSize + blockPadding,
                         width: squareSize - blockPadding * 2,
                         height: squareSize - blockPadding * 2), block: block)
+                    blockViews.append(blockView)
                     self.addSubview(blockView)
                 }
             }
         }
     }
     
-    func hitTest(_ point: CGPoint) -> CGPoint? {
+    func addBlock(at: (w: Int, h: Int), block: Block) -> Bool {
+        if container.addBlock(at: at, block: block) {
+            let blockView = BlockView(frame: CGRect(
+                x: CGFloat(at.w) * squareSize + blockPadding,
+                y: CGFloat(at.h) * squareSize + blockPadding,
+                width: squareSize - blockPadding * 2,
+                height: squareSize - blockPadding * 2), block: block)
+            blockViews.append(blockView)
+            self.addSubview(blockView)
+            return true
+        } else {
+            return false
+        }
+    }
+//
+//    func moveBlock(from: (w: Int, h: Int), to: (w: Int, h: Int)) -> Bool {
+//
+//    }
+//
+//    func swapBlock(from: (w: Int, h: Int), with: (w: Int, h: Int)) -> Bool {
+//
+//    }
+//
+    func removeBlock(at: (w: Int, h: Int)) -> Bool {
+        if let removal = container.removeBlock(at: at) {
+            let removalBlockView = BlockView(frame: CGRect.init(x: 0, y: 0, width: 0, height: 0), block: removal)
+            let index = blockViews.index(of: removalBlockView)!
+            blockViews[index].removeFromSuperview()
+            blockViews.remove(at: index)
+            return true
+        } else {
+            return false
+        }
+    }
+    
+    func hitBlock(_ point: CGPoint) -> (w: Int, h: Int, block: Block?)? {
         let pointInView = CGPoint(x: point.x - self.frame.origin.x, y: point.y - self.frame.origin.y)
         
         for i in 0..<width {
@@ -92,8 +129,7 @@ class ContainerView: UIView {
                     pointInView.x <= CGFloat(i+1) * squareSize - blockPadding &&
                     pointInView.y >= CGFloat(j) * squareSize + blockPadding &&
                     pointInView.y <= CGFloat(j+1) * squareSize - blockPadding {
-                    return CGPoint(x: self.frame.origin.x + (CGFloat(i)+0.5) * squareSize,
-                                   y: self.frame.origin.y + (CGFloat(j)+0.5) * squareSize)
+                    return (i, j, container.blocks[j][i])
                 }
             }
         }

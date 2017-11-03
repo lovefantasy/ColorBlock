@@ -9,7 +9,7 @@
 import UIKit
 import Foundation
 
-class Block: CustomStringConvertible {
+class Block: CustomStringConvertible, Equatable {
     let color: UIColor
     let isStatic: Bool
     
@@ -32,11 +32,19 @@ class Block: CustomStringConvertible {
         }
     }
     
+    // for debug
     var description: String {
         if let channels = color.cgColor.components {
-            return String.init(format: "#%2X%2X%2X", Int(channels[0]*255), Int(channels[1]*255), Int(channels[2]*255))
+            return String.init(format: "#%02X%02X%02X", Int(channels[0]*255), Int(channels[1]*255), Int(channels[2]*255))
         } else {
             return ""
         }
     }
+    
+    // protocol - Equatable
+    static func == (lhs: Block, rhs: Block) -> Bool {
+        return lhs.encodedValue == rhs.encodedValue
+    }
 }
+
+
