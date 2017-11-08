@@ -61,27 +61,36 @@ class ViewController: UIViewController {
                 
                 for c in containerViews {
                     if let grid = c.hitBlock(point) {
-                        print( String.init(format: "Drag complete, origin: %@,%d,%d, end: %@,%d,%d", originBlockView!.c, originBlockView!.w, originBlockView!.h, c, grid.w, grid.h) )
+                        // for debug
+                        // print( String.init(format: "Drag complete, origin: %@,%d,%d, end: %@,%d,%d", originBlockView!.c, originBlockView!.w, originBlockView!.h, c, grid.w, grid.h) )
                         
                         if c.isEqual(originBlockView?.c) {
                             // 1. Hit successful in the same containerView
-                            if let block = grid.block {
+                            if grid.block != nil {
                                 // 1-1. Hit a grid with a block
+                                _ = c.swapBlock(from: (w:originBlockView!.w, h:originBlockView!.h), with: (w:grid.w, h:grid.h))
                             } else {
                                 // 1-2. Hit a empty grid
+                                _ = c.moveBlock(from: (w:originBlockView!.w, h:originBlockView!.h), to: (w:grid.w, h:grid.h))
                             }
                         } else {
                             // 2. Hit another containerView
-                            if let block = grid.block {
+                            if grid.block != nil {
                                 // 2-1. Hit a grid with a block
+                                if let removedBlock = c.removeBlock(at: (w: grid.w, h: grid.h)) {
+                                    _ = c.addBlock(at: (w: grid.w, h: grid.h), block: originBlockView!.c.container.blocks[originBlockView!.h][originBlockView!.w]!)
+                                    _ = originBlockView!.c.removeBlock(at: (w:originBlockView!.w, h:originBlockView!.h))
+                                    _ = originBlockView!.c.addBlock(at: (w:originBlockView!.w, h:originBlockView!.h), block: removedBlock)
+                                }
                             } else {
                                 // 2-2. Hit a empty grid
                                 if c.addBlock(at: (w: grid.w, h: grid.h), block: originBlockView!.c.container.blocks[originBlockView!.h][originBlockView!.w]!) {
-                                    originBlockView!.c.removeBlock(at: (w:originBlockView!.w, h:originBlockView!.h))
+                                    _ = originBlockView!.c.removeBlock(at: (w:originBlockView!.w, h:originBlockView!.h))
                                 }
                             }
                         }
                     }
+                    if c.container.isCompleted { print("completed!") }
                 }
                 originBlockView = nil
             } // if pickedBlockView

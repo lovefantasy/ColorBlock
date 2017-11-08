@@ -9,6 +9,7 @@
 import UIKit
 import Foundation
 
+/// class for the gray container background for blocks.
 class ContainerBlockView: UIView {
     required init?(coder aDecoder: NSCoder) {
         fatalError("init with NSCoder is not implemented")

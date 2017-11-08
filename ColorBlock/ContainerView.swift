@@ -99,24 +99,44 @@ class ContainerView: UIView {
             return false
         }
     }
-//
-//    func moveBlock(from: (w: Int, h: Int), to: (w: Int, h: Int)) -> Bool {
-//
-//    }
-//
-//    func swapBlock(from: (w: Int, h: Int), with: (w: Int, h: Int)) -> Bool {
-//
-//    }
-//
-    func removeBlock(at: (w: Int, h: Int)) -> Bool {
+
+    func moveBlock(from: (w: Int, h: Int), to: (w: Int, h: Int)) -> Bool {
+        if container.moveBlock(from: from, to: to) {
+            let movedBlockView = BlockView(frame: CGRect.init(x: 0, y: 0, width: 0, height: 0), block: container.blocks[to.h][to.w]!)
+            let index = blockViews.index(of: movedBlockView)!
+            blockViews[index].center.x += CGFloat(to.w - from.w) * squareSize
+            blockViews[index].center.y += CGFloat(to.h - from.h) * squareSize
+            return true
+        } else {
+            return false
+        }
+    }
+
+    func swapBlock(from: (w: Int, h: Int), with: (w: Int, h: Int)) -> Bool {
+        if container.swapBlock(from: from, with: with) {
+            let firstBlock = BlockView(frame: CGRect.init(x: 0, y: 0, width: 0, height: 0), block: container.blocks[with.h][with.w]!)
+            let secondBlock = BlockView(frame: CGRect.init(x: 0, y: 0, width: 0, height: 0), block: container.blocks[from.h][from.w]!)
+            let firstIndex = blockViews.index(of: firstBlock)!
+            let secondIndex = blockViews.index(of: secondBlock)!
+            let firstPoint = blockViews[firstIndex].center
+            let secondPoint = blockViews[secondIndex].center
+            blockViews[firstIndex].center = secondPoint
+            blockViews[secondIndex].center = firstPoint
+            return true
+        } else {
+            return false
+        }
+    }
+
+    func removeBlock(at: (w: Int, h: Int)) -> Block? {
         if let removal = container.removeBlock(at: at) {
             let removalBlockView = BlockView(frame: CGRect.init(x: 0, y: 0, width: 0, height: 0), block: removal)
             let index = blockViews.index(of: removalBlockView)!
             blockViews[index].removeFromSuperview()
             blockViews.remove(at: index)
-            return true
+            return removal
         } else {
-            return false
+            return nil
         }
     }
     
@@ -125,10 +145,10 @@ class ContainerView: UIView {
         
         for i in 0..<width {
             for j in 0..<height {
-                if pointInView.x >= CGFloat(i) * squareSize + blockPadding &&
-                    pointInView.x <= CGFloat(i+1) * squareSize - blockPadding &&
-                    pointInView.y >= CGFloat(j) * squareSize + blockPadding &&
-                    pointInView.y <= CGFloat(j+1) * squareSize - blockPadding {
+                if pointInView.x >= CGFloat(i) * squareSize &&
+                    pointInView.x <= CGFloat(i+1) * squareSize &&
+                    pointInView.y >= CGFloat(j) * squareSize &&
+                    pointInView.y <= CGFloat(j+1) * squareSize {
                     return (i, j, container.blocks[j][i])
                 }
             }

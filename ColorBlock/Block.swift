@@ -18,17 +18,21 @@ class Block: CustomStringConvertible, Equatable {
         self.isStatic = isStatic
     }
     
+    init(red: Int, green: Int, blue: Int, accuracy: Int, isStatic: Bool) {
+        self.color = UIColor(red: CGFloat(red)/CGFloat(accuracy), green: CGFloat(green)/CGFloat(accuracy), blue: CGFloat(blue)/CGFloat(accuracy), alpha: 1.0)
+        self.isStatic = isStatic
+    }
+    
     init(code: UInt32, isStatic: Bool) {
-        print("code:", code)
         self.color = UIColor(red: CGFloat(code/65536)/255, green: CGFloat((code%65535)/256)/255, blue: CGFloat(code%256)/255, alpha: 1.0)
         self.isStatic = isStatic
     }
     
-    var encodedValue: UInt32 {
+    var rgbValue: ColorCode {
         if let channels = color.cgColor.components {
-            return UInt32(channels[0]*255*256*256) + UInt32(channels[1]*255*256) + UInt32(channels[2]*255)
+            return ColorCode(red: channels[0], green: channels[1], blue: channels[2])
         } else {
-            return UInt32.max
+            return ColorCode(red: -1, green: -1, blue: -1)
         }
     }
     
@@ -43,7 +47,10 @@ class Block: CustomStringConvertible, Equatable {
     
     // protocol - Equatable
     static func == (lhs: Block, rhs: Block) -> Bool {
-        return lhs.encodedValue == rhs.encodedValue
+        if let lhsChannel = lhs.color.cgColor.components, let rhsChannel = rhs.color.cgColor.components {
+            return (lhsChannel[0] == rhsChannel[0] && lhsChannel[1] == rhsChannel[1] && lhsChannel[2] == rhsChannel[2])
+        }
+        return false
     }
 }
 

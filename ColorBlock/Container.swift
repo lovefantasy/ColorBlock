@@ -10,8 +10,46 @@ import Foundation
 
 class Container {
     var blocks: Array<Array<Block?>>
-    var isCompleted: Bool = false
     let isBoard: Bool
+    
+    var isCompleted: Bool {
+        if !isBoard { return false }
+        
+        for j in 0..<blocks.count {
+            for i in 0..<blocks[0].count {
+                if blocks[j][i] == nil {
+                    print("board failed: empty blocks exist")
+                    return false
+                }
+            }
+        }
+        
+        if blocks.count > 1 {
+            let hOffset = blocks[1][0]!.rgbValue - blocks[0][0]!.rgbValue
+            for j in 0..<blocks.count-1 {
+                for i in 0..<blocks[0].count {
+                    if blocks[j+1][i]!.rgbValue - blocks[j][i]!.rgbValue != hOffset {
+                        print("board failed: height check")
+                        return false
+                    }
+                }
+            }
+        }
+        
+        if blocks[0].count > 1 {
+            let wOffset = blocks[0][1]!.rgbValue - blocks[0][0]!.rgbValue
+            for j in 0..<blocks.count {
+                for i in 0..<blocks[0].count+1 {
+                    if blocks[j][i+1]!.rgbValue - blocks[j][i]!.rgbValue != wOffset {
+                        print("board failed: width check")
+                        return false
+                    }
+                }
+            }
+        }
+        
+        return true
+    }
     
     init(width: Int, height: Int, code: [UInt32], isBoard: Bool) {
         guard width > 0 else { fatalError("initialize container with invalid width") }
@@ -33,21 +71,17 @@ class Container {
                     }
                 }
             } else { // if code is null, randomly fill with valid blocks
-                var colors:[UInt32] = []
-                let startColor = arc4random_uniform(255*256*256)
-                let endColor = arc4random_uniform(255*256*256)
-                colors.append(startColor)
-                colors.append(endColor)
+                let acc: Int = 65535
+                let rArray = randomChannelArray(count: width*height, accuracy: acc)
+                let gArray = randomChannelArray(count: width*height, accuracy: acc)
+                let bArray = randomChannelArray(count: width*height, accuracy: acc)
                 
-                for i in 1..<(width*height-1) {
-                    let color = startColor * UInt32(i) / UInt32(width*height-1)
-                              + endColor * UInt32(width*height-i-1) / UInt32(width*height-1)
-                    colors.append(color)
-                }
-                let randomed = colors.randomSorted()
+                var colorArray:[[Int]] = []
+                for i in 0..<width*height { colorArray.append([rArray[i], gArray[i], bArray[i]]) }
+                let randomed = colorArray.randomSorted()
                 for j in 0..<height {
                     for i in 0..<width {
-                        self.blocks[j][i] = Block(code: randomed[j*height+i], isStatic: false)
+                        self.blocks[j][i] = Block(red: randomed[j*height+i][0], green: randomed[j*height+i][1], blue: randomed[j*height+i][2], accuracy: acc, isStatic: false)
                     }
                 }
             }
@@ -82,5 +116,16 @@ class Container {
         guard !block.isStatic else { return nil }
         blocks[at.h][at.w] = nil
         return block
+    }
+    
+    private func randomChannelArray(count: Int, accuracy: Int) -> [Int] {
+        var colors:[Int] = []
+        let start = Int(arc4random_uniform(UInt32(accuracy)))
+        let end = Int(arc4random_uniform(UInt32(accuracy)))
+        
+        for i in 0...count-1 {
+            colors.append( (start*(count-i-1) + end*i) / (count-1) )
+        }
+        return colors
     }
 }
