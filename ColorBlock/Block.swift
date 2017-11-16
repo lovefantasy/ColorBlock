@@ -18,6 +18,11 @@ class Block: CustomStringConvertible, Equatable {
         self.isStatic = isStatic
     }
     
+    init(red: CGFloat, green: CGFloat, blue: CGFloat, isStatic: Bool) {
+        self.color = UIColor(red: red, green: green, blue: blue, alpha: 1.0)
+        self.isStatic = isStatic
+    }
+    
     init(red: Int, green: Int, blue: Int, accuracy: Int, isStatic: Bool) {
         self.color = UIColor(red: CGFloat(red)/CGFloat(accuracy), green: CGFloat(green)/CGFloat(accuracy), blue: CGFloat(blue)/CGFloat(accuracy), alpha: 1.0)
         self.isStatic = isStatic

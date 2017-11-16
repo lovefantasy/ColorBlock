@@ -71,17 +71,10 @@ class Container {
                     }
                 }
             } else { // if code is null, randomly fill with valid blocks
-                let acc: Int = 65535
-                let rArray = randomChannelArray(count: width*height, accuracy: acc)
-                let gArray = randomChannelArray(count: width*height, accuracy: acc)
-                let bArray = randomChannelArray(count: width*height, accuracy: acc)
-                
-                var colorArray:[[Int]] = []
-                for i in 0..<width*height { colorArray.append([rArray[i], gArray[i], bArray[i]]) }
-                let randomed = colorArray.randomSorted()
+                let colors = ColorCode.generateRandomColors(count: width*height).randomSorted()
                 for j in 0..<height {
                     for i in 0..<width {
-                        self.blocks[j][i] = Block(red: randomed[j*height+i][0], green: randomed[j*height+i][1], blue: randomed[j*height+i][2], accuracy: acc, isStatic: false)
+                        self.blocks[j][i] = Block(red: colors[j*height+i].r, green: colors[j*height+i].g, blue: colors[j*height+i].b, isStatic: false)
                     }
                 }
             }
@@ -116,16 +109,5 @@ class Container {
         guard !block.isStatic else { return nil }
         blocks[at.h][at.w] = nil
         return block
-    }
-    
-    private func randomChannelArray(count: Int, accuracy: Int) -> [Int] {
-        var colors:[Int] = []
-        let start = Int(arc4random_uniform(UInt32(accuracy)))
-        let end = Int(arc4random_uniform(UInt32(accuracy)))
-        
-        for i in 0...count-1 {
-            colors.append( (start*(count-i-1) + end*i) / (count-1) )
-        }
-        return colors
     }
 }
